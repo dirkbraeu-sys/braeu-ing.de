@@ -76,6 +76,24 @@
             <input id="login-password" type="password" name="password" required autocomplete="current-password">
           </div>
           <button type="submit" class="btn btn-primary" style="justify-self:start;">Anmelden</button>
+          <p class="form-note"><a href="#" id="link-forgot">Passwort vergessen?</a></p>
+        </form>
+      </div>
+
+      <!-- Passwort vergessen -->
+      <div id="panel-forgot" class="auth-panel">
+        <p style="color:var(--ink-soft);">Geben Sie Ihre E-Mail-Adresse ein. Wir senden Ihnen einen Link zum Zurücksetzen des Passworts.</p>
+        <form class="contact-form" id="forgot-form">
+          <div style="position:absolute; left:-9999px;" aria-hidden="true">
+            <label for="forgot-website">Bitte freilassen</label>
+            <input id="forgot-website" type="text" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div>
+            <label for="forgot-email">Ihre E-Mail-Adresse *</label>
+            <input id="forgot-email" type="email" name="email" required autocomplete="email">
+          </div>
+          <button type="submit" class="btn btn-primary" style="justify-self:start;">Link anfordern</button>
+          <p class="form-note"><a href="#" id="link-back-to-login">Zurück zur Anmeldung</a></p>
         </form>
       </div>
 
@@ -156,15 +174,33 @@
   var tabs = { login: document.getElementById('tab-login'), register: document.getElementById('tab-register') };
   var panels = { login: document.getElementById('panel-login'), register: document.getElementById('panel-register') };
 
+  function hideExtraPanels() {
+    document.getElementById('panel-setpassword').classList.remove('active');
+    document.getElementById('panel-forgot').classList.remove('active');
+  }
   function showTab(name) {
     Object.keys(tabs).forEach(function (k) {
       tabs[k].classList.toggle('active', k === name);
       panels[k].classList.toggle('active', k === name);
     });
-    document.getElementById('panel-setpassword').classList.remove('active');
+    hideExtraPanels();
   }
   tabs.login.addEventListener('click', function () { showTab('login'); });
   tabs.register.addEventListener('click', function () { showTab('register'); });
+
+  document.getElementById('link-forgot').addEventListener('click', function (e) {
+    e.preventDefault();
+    Object.keys(tabs).forEach(function (k) {
+      tabs[k].classList.remove('active');
+      panels[k].classList.remove('active');
+    });
+    document.getElementById('panel-setpassword').classList.remove('active');
+    document.getElementById('panel-forgot').classList.add('active');
+  });
+  document.getElementById('link-back-to-login').addEventListener('click', function (e) {
+    e.preventDefault();
+    showTab('login');
+  });
 
   function banner(text, type) {
     var wrap = document.getElementById('form-status');
@@ -240,6 +276,28 @@
     }
   });
 
+  document.getElementById('forgot-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var f = e.target;
+    var payload = { email: f.email.value, website: f.website.value };
+    var btn = f.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await postJSON('kunden/forgot-password.php', payload);
+      banner(r.message || r.error || 'Falls ein Konto mit dieser E-Mail-Adresse besteht, haben wir Ihnen eine E-Mail gesendet.', r.ok ? 'success' : 'error');
+      if (r.ok) { f.reset(); }
+    } catch (err) {
+      banner('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  // Das Formular "Passwort festlegen" wird für zwei Fälle wiederverwendet:
+  // nach der Registrierungs-Bestätigung (set-password.php) und beim
+  // Zurücksetzen eines vergessenen Passworts (reset-password.php).
+  var setpasswordEndpoint = 'kunden/set-password.php';
+
   document.getElementById('setpassword-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     var f = e.target;
@@ -251,9 +309,9 @@
     var btn = f.querySelector('button[type="submit"]');
     btn.disabled = true;
     try {
-      var r = await postJSON('kunden/set-password.php', payload);
+      var r = await postJSON(setpasswordEndpoint, payload);
       if (r.ok) {
-        banner('Passwort gespeichert. Sie werden weitergeleitet …', 'success');
+        banner(r.message || 'Passwort gespeichert. Sie werden weitergeleitet …', 'success');
         setTimeout(function () { window.location.href = 'kundenbereich.php'; }, 1200);
       } else {
         banner(r.error || 'Es ist ein Fehler aufgetreten.', 'error');
@@ -265,27 +323,52 @@
     }
   });
 
+  function openSetPasswordPanel(name, token, intro) {
+    Object.keys(tabs).forEach(function (k) {
+      tabs[k].classList.remove('active');
+      panels[k].classList.remove('active');
+    });
+    document.getElementById('panel-forgot').classList.remove('active');
+    document.getElementById('setpassword-token').value = token;
+    document.getElementById('setpassword-intro').textContent = intro;
+    document.getElementById('panel-setpassword').classList.add('active');
+  }
+
   // Kommt der Besucher über einen Bestätigungslink (?verify=TOKEN)?
   (async function () {
     var params = new URLSearchParams(location.search);
-    var token = params.get('verify');
-    if (!token) { return; }
-    try {
-      var res = await fetch('kunden/verify.php?token=' + encodeURIComponent(token), { credentials: 'same-origin' });
-      var r = await res.json();
-      if (r.ok) {
-        Object.keys(tabs).forEach(function (k) {
-          tabs[k].classList.remove('active');
-          panels[k].classList.remove('active');
-        });
-        document.getElementById('setpassword-token').value = r.token;
-        document.getElementById('setpassword-intro').textContent = 'Hallo ' + r.name + ', Ihre E-Mail-Adresse wurde bestätigt. Bitte vergeben Sie jetzt ein Passwort.';
-        document.getElementById('panel-setpassword').classList.add('active');
-      } else {
-        banner(r.error || 'Der Bestätigungslink ist ungültig oder abgelaufen.', 'error');
+    var verifyToken = params.get('verify');
+    var resetToken = params.get('reset');
+
+    if (verifyToken) {
+      try {
+        var res = await fetch('kunden/verify.php?token=' + encodeURIComponent(verifyToken), { credentials: 'same-origin' });
+        var r = await res.json();
+        if (r.ok) {
+          setpasswordEndpoint = 'kunden/set-password.php';
+          openSetPasswordPanel(r.name, r.token, 'Hallo ' + r.name + ', Ihre E-Mail-Adresse wurde bestätigt. Bitte vergeben Sie jetzt ein Passwort.');
+        } else {
+          banner(r.error || 'Der Bestätigungslink ist ungültig oder abgelaufen.', 'error');
+        }
+      } catch (err) {
+        banner('Der Bestätigungslink konnte nicht geprüft werden.', 'error');
       }
-    } catch (err) {
-      banner('Der Bestätigungslink konnte nicht geprüft werden.', 'error');
+      return;
+    }
+
+    if (resetToken) {
+      try {
+        var res2 = await fetch('kunden/check-reset-token.php?token=' + encodeURIComponent(resetToken), { credentials: 'same-origin' });
+        var r2 = await res2.json();
+        if (r2.ok) {
+          setpasswordEndpoint = 'kunden/reset-password.php';
+          openSetPasswordPanel(r2.name, r2.token, 'Hallo ' + r2.name + ', bitte vergeben Sie ein neues Passwort.');
+        } else {
+          banner(r2.error || 'Der Link ist ungültig oder abgelaufen.', 'error');
+        }
+      } catch (err) {
+        banner('Der Link konnte nicht geprüft werden.', 'error');
+      }
     }
   })();
 })();

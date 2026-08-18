@@ -48,6 +48,17 @@ function kunden_ensure_schema(PDO $pdo): void
             KEY idx_token (verification_token)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+    try {
+        $pdo->exec("
+            ALTER TABLE customers
+                ADD COLUMN IF NOT EXISTS reset_token CHAR(64) NULL,
+                ADD COLUMN IF NOT EXISTS reset_expires DATETIME NULL,
+                ADD KEY IF NOT EXISTS idx_reset_token (reset_token)
+        ");
+    } catch (Throwable $e) {
+        // Ältere MySQL-Versionen ohne "IF NOT EXISTS" bei ALTER: einfach ignorieren,
+        // falls die Spalten schon existieren, schlägt es sonst hier fehl.
+    }
     $done = true;
 }
 
@@ -83,11 +94,7 @@ function kunden_send_verification_mail(string $toEmail, string $name, string $to
         . "Ingenieurbüro Bräu\n"
         . "https://braeu-ing.de\n";
 
-    // Der Anzeigename im From-Header muss MIME-kodiert werden, sobald er
-    // Nicht-ASCII-Zeichen enthält (Umlaute) – sonst verwerfen manche
-    // Mailserver die Nachricht kommentarlos.
-    $fromName = '=?UTF-8?B?' . base64_encode('Ingenieurbüro Bräu') . '?=';
-    $headers = "From: {$fromName} <info@braeu-ing.de>\r\n"
+    $headers = "From: " . kunden_mail_from_header() . "\r\n"
         . "Reply-To: info@braeu-ing.de\r\n"
         . "MIME-Version: 1.0\r\n"
         . "Content-Type: text/plain; charset=UTF-8\r\n"
@@ -103,4 +110,35 @@ function kunden_send_verification_mail(string $toEmail, string $name, string $to
 function kunden_valid_email(string $email): bool
 {
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false && strlen($email) <= 190;
+}
+
+function kunden_mail_from_header(): string
+{
+    return '=?UTF-8?B?' . base64_encode('Ingenieurbüro Bräu') . '?=' . ' <info@braeu-ing.de>';
+}
+
+function kunden_send_password_reset_mail(string $toEmail, string $name, string $token): bool
+{
+    $link = 'https://braeu-ing.de/kundenlogin.html?reset=' . urlencode($token);
+    $subject = 'Passwort zurücksetzen – Ingenieurbüro Bräu';
+    $safeName = $name !== '' ? $name : 'Kunde/Kundin';
+    $body = "Hallo {$safeName},\n\n"
+        . "für Ihr Konto im Kundenbereich von braeu-ing.de wurde ein neues Passwort angefordert.\n"
+        . "Über folgenden Link können Sie ein neues Passwort vergeben (30 Minuten gültig):\n\n"
+        . $link . "\n\n"
+        . "Falls Sie das nicht angefordert haben, ignorieren Sie diese E-Mail einfach – Ihr Passwort bleibt unverändert.\n\n"
+        . "Ingenieurbüro Bräu\n"
+        . "https://braeu-ing.de\n";
+
+    $headers = "From: " . kunden_mail_from_header() . "\r\n"
+        . "Reply-To: info@braeu-ing.de\r\n"
+        . "MIME-Version: 1.0\r\n"
+        . "Content-Type: text/plain; charset=UTF-8\r\n"
+        . "Content-Transfer-Encoding: 8bit\r\n";
+
+    $ok = mail($toEmail, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+    if (!$ok) {
+        error_log('kunden_send_password_reset_mail: mail() lieferte false für ' . $toEmail);
+    }
+    return $ok;
 }
