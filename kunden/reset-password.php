@@ -14,8 +14,8 @@ $password2 = (string) ($in['password2'] ?? '');
 if ($token === '' || !preg_match('/^[a-f0-9]{64}$/', $token)) {
     kunden_json(['ok' => false, 'error' => 'Ungültiger oder abgelaufener Link. Bitte fordern Sie einen neuen an.']);
 }
-if (mb_strlen($password) < 8) {
-    kunden_json(['ok' => false, 'error' => 'Das Passwort muss mindestens 8 Zeichen lang sein.']);
+if (!kunden_valid_password($password)) {
+    kunden_json(['ok' => false, 'error' => KUNDEN_PASSWORT_HINWEIS]);
 }
 if ($password !== $password2) {
     kunden_json(['ok' => false, 'error' => 'Die Passwörter stimmen nicht überein.']);

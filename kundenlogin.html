@@ -29,6 +29,16 @@
 .pw-toggle .icon-hide { display:none; }
 .pw-toggle.is-visible .icon-show { display:none; }
 .pw-toggle.is-visible .icon-hide { display:block; }
+.pw-requirements {
+  list-style:none; padding:0; margin:10px 0 0; display:grid; gap:6px;
+  font-size:0.84rem; color:var(--ink-soft);
+}
+.pw-requirements li { display:flex; align-items:center; gap:8px; }
+.pw-requirements li::before {
+  content:"○"; color:var(--line); font-size:0.9rem; width:16px; flex-shrink:0; text-align:center;
+}
+.pw-requirements li.ok { color:var(--green-dark); }
+.pw-requirements li.ok::before { content:"✓"; color:var(--green); font-weight:700; }
 </style>
 
 <header class="site-header">
@@ -141,7 +151,7 @@
         <form class="contact-form" id="setpassword-form">
           <input type="hidden" id="setpassword-token" name="token" value="">
           <div>
-            <label for="setpassword-password">Neues Passwort (mind. 8 Zeichen) *</label>
+            <label for="setpassword-password">Neues Passwort *</label>
             <div class="pw-field">
               <input id="setpassword-password" type="password" name="password" required minlength="8" autocomplete="new-password">
               <button type="button" class="pw-toggle" data-target="setpassword-password" aria-label="Passwort anzeigen">
@@ -149,6 +159,13 @@
                 <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
               </button>
             </div>
+            <ul id="pw-requirements" class="pw-requirements">
+              <li data-rule="length">Mindestens 8 Zeichen</li>
+              <li data-rule="upper">Ein Großbuchstabe (A–Z)</li>
+              <li data-rule="lower">Ein Kleinbuchstabe (a–z)</li>
+              <li data-rule="digit">Eine Zahl (0–9)</li>
+              <li data-rule="special">Ein Sonderzeichen (z. B. ! ? % &amp;)</li>
+            </ul>
           </div>
           <div>
             <label for="setpassword-password2">Passwort wiederholen *</label>
@@ -333,6 +350,27 @@
     }
   });
 
+  // Mindestanforderungen ans Passwort – Live-Prüfung während der Eingabe.
+  var pwRules = {
+    length: function (v) { return v.length >= 8; },
+    upper: function (v) { return /[A-ZÄÖÜ]/.test(v); },
+    lower: function (v) { return /[a-zäöüß]/.test(v); },
+    digit: function (v) { return /[0-9]/.test(v); },
+    special: function (v) { return /[^A-Za-z0-9ÄÖÜäöüß]/.test(v); }
+  };
+  function passwordMeetsRequirements(v) {
+    return Object.keys(pwRules).every(function (k) { return pwRules[k](v); });
+  }
+  var pwInput = document.getElementById('setpassword-password');
+  var pwList = document.getElementById('pw-requirements');
+  pwInput.addEventListener('input', function () {
+    var v = pwInput.value;
+    Object.keys(pwRules).forEach(function (rule) {
+      var li = pwList.querySelector('[data-rule="' + rule + '"]');
+      li.classList.toggle('ok', pwRules[rule](v));
+    });
+  });
+
   // Das Formular "Passwort festlegen" wird für zwei Fälle wiederverwendet:
   // nach der Registrierungs-Bestätigung (set-password.php) und beim
   // Zurücksetzen eines vergessenen Passworts (reset-password.php).
@@ -341,6 +379,16 @@
   document.getElementById('setpassword-form').addEventListener('submit', async function (e) {
     e.preventDefault();
     var f = e.target;
+
+    if (!passwordMeetsRequirements(f.password.value)) {
+      banner('Das Passwort erfüllt noch nicht alle Anforderungen (siehe Checkliste).', 'error');
+      return;
+    }
+    if (f.password.value !== f.password2.value) {
+      banner('Die Passwörter stimmen nicht überein.', 'error');
+      return;
+    }
+
     var payload = {
       token: f.token.value,
       password: f.password.value,
@@ -371,6 +419,8 @@
     document.getElementById('panel-forgot').classList.remove('active');
     document.getElementById('setpassword-token').value = token;
     document.getElementById('setpassword-intro').textContent = intro;
+    document.getElementById('setpassword-form').reset();
+    pwList.querySelectorAll('li').forEach(function (li) { li.classList.remove('ok'); });
     document.getElementById('panel-setpassword').classList.add('active');
   }
 

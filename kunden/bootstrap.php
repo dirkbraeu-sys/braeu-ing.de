@@ -112,6 +112,30 @@ function kunden_valid_email(string $email): bool
     return filter_var($email, FILTER_VALIDATE_EMAIL) !== false && strlen($email) <= 190;
 }
 
+// Mindestanforderungen: mind. 8 Zeichen, je min. ein Groß-, ein Kleinbuchstabe,
+// eine Ziffer und ein Sonderzeichen.
+const KUNDEN_PASSWORT_HINWEIS = 'Das Passwort muss mindestens 8 Zeichen lang sein und einen Großbuchstaben, einen Kleinbuchstaben, eine Zahl und ein Sonderzeichen enthalten.';
+
+function kunden_valid_password(string $password): bool
+{
+    if (mb_strlen($password) < 8) {
+        return false;
+    }
+    if (!preg_match('/[A-ZÄÖÜ]/u', $password)) {
+        return false;
+    }
+    if (!preg_match('/[a-zäöüß]/u', $password)) {
+        return false;
+    }
+    if (!preg_match('/[0-9]/', $password)) {
+        return false;
+    }
+    if (!preg_match('/[^A-Za-z0-9ÄÖÜäöüß]/u', $password)) {
+        return false;
+    }
+    return true;
+}
+
 function kunden_mail_from_header(): string
 {
     return '=?UTF-8?B?' . base64_encode('Ingenieurbüro Bräu') . '?=' . ' <info@braeu-ing.de>';
