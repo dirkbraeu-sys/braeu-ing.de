@@ -83,11 +83,21 @@ function kunden_send_verification_mail(string $toEmail, string $name, string $to
         . "Ingenieurbüro Bräu\n"
         . "https://braeu-ing.de\n";
 
-    $headers = "From: Ingenieurbüro Bräu <info@braeu-ing.de>\r\n"
+    // Der Anzeigename im From-Header muss MIME-kodiert werden, sobald er
+    // Nicht-ASCII-Zeichen enthält (Umlaute) – sonst verwerfen manche
+    // Mailserver die Nachricht kommentarlos.
+    $fromName = '=?UTF-8?B?' . base64_encode('Ingenieurbüro Bräu') . '?=';
+    $headers = "From: {$fromName} <info@braeu-ing.de>\r\n"
         . "Reply-To: info@braeu-ing.de\r\n"
-        . "Content-Type: text/plain; charset=UTF-8\r\n";
+        . "MIME-Version: 1.0\r\n"
+        . "Content-Type: text/plain; charset=UTF-8\r\n"
+        . "Content-Transfer-Encoding: 8bit\r\n";
 
-    return @mail($toEmail, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+    $ok = mail($toEmail, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, $headers);
+    if (!$ok) {
+        error_log('kunden_send_verification_mail: mail() lieferte false für ' . $toEmail);
+    }
+    return $ok;
 }
 
 function kunden_valid_email(string $email): bool
