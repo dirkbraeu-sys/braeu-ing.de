@@ -39,6 +39,9 @@
 }
 .pw-requirements li.ok { color:var(--green-dark); }
 .pw-requirements li.ok::before { content:"✓"; color:var(--green); font-weight:700; }
+.pw-match-msg { font-size:0.84rem; margin:8px 0 0; min-height:1.2em; }
+.pw-match-msg.ok { color:var(--green-dark); }
+.pw-match-msg.error { color:#a33; }
 </style>
 
 <header class="site-header">
@@ -176,6 +179,7 @@
                 <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
               </button>
             </div>
+            <p id="pw-match-msg" class="pw-match-msg"></p>
           </div>
           <button type="submit" class="btn btn-primary" style="justify-self:start;">Passwort speichern &amp; anmelden</button>
         </form>
@@ -369,7 +373,26 @@
       var li = pwList.querySelector('[data-rule="' + rule + '"]');
       li.classList.toggle('ok', pwRules[rule](v));
     });
+    checkPasswordMatch();
   });
+
+  var pwInput2 = document.getElementById('setpassword-password2');
+  var pwMatchMsg = document.getElementById('pw-match-msg');
+  function checkPasswordMatch() {
+    if (pwInput2.value === '') {
+      pwMatchMsg.textContent = '';
+      pwMatchMsg.className = 'pw-match-msg';
+      return;
+    }
+    if (pwInput2.value === pwInput.value) {
+      pwMatchMsg.textContent = 'Passwörter stimmen überein.';
+      pwMatchMsg.className = 'pw-match-msg ok';
+    } else {
+      pwMatchMsg.textContent = 'Passwörter stimmen nicht überein.';
+      pwMatchMsg.className = 'pw-match-msg error';
+    }
+  }
+  pwInput2.addEventListener('input', checkPasswordMatch);
 
   // Das Formular "Passwort festlegen" wird für zwei Fälle wiederverwendet:
   // nach der Registrierungs-Bestätigung (set-password.php) und beim
@@ -421,6 +444,8 @@
     document.getElementById('setpassword-intro').textContent = intro;
     document.getElementById('setpassword-form').reset();
     pwList.querySelectorAll('li').forEach(function (li) { li.classList.remove('ok'); });
+    pwMatchMsg.textContent = '';
+    pwMatchMsg.className = 'pw-match-msg';
     document.getElementById('panel-setpassword').classList.add('active');
   }
 
