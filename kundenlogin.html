@@ -1,0 +1,292 @@
+<title>Kundenlogin – Ingenieurbüro Bräu</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="icon" href="assets/img/favicon-50x50.jpg">
+<meta name="description" content="Kundenlogin des Ingenieurbüro Bräu: Registrieren Sie sich oder melden Sie sich in Ihrem Kundenbereich an.">
+<meta name="robots" content="noindex, follow">
+<link rel="canonical" href="https://braeu-ing.de/kundenlogin.html">
+<link rel="stylesheet" href="assets/css/style.css">
+<style>
+.auth-switch { display:flex; gap:10px; margin-bottom:28px; }
+.auth-switch button {
+  flex:1; padding:12px 16px; border-radius:10px; border:1px solid var(--line);
+  background:var(--paper); font-weight:700; font-size:0.95rem; cursor:pointer;
+  color:var(--ink-soft); transition:background .15s,color .15s,border-color .15s;
+}
+.auth-switch button.active { background:var(--green); border-color:var(--green); color:#fff; }
+.auth-panel { display:none; }
+.auth-panel.active { display:block; }
+.auth-card { max-width:460px; margin:0 auto; }
+</style>
+
+<header class="site-header">
+  <div class="wrap">
+    <a href="index.html" class="brand">
+      <span class="mark">iB</span>
+      <span>Ingenieurbüro Bräu<small>Energieberatung &amp; Energieaudit</small></span>
+    </a>
+    <nav class="main-nav">
+      <a href="index.html">Leistungen</a>
+      <a href="din-en-16247-1.html">DIN EN 16247-1</a>
+      <a href="ueber-uns.html">Über uns</a>
+      <a href="vorgehensweise.html">Vorgehensweise</a>
+      <a href="kontakt.html">Kontakt</a>
+      <a href="kundenlogin.html" class="nav-cta active">Kundenlogin</a>
+    </nav>
+    <button class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false">☰</button>
+  </div>
+</header>
+
+<main>
+  <section class="hero" style="padding-bottom:40px;">
+    <div class="wrap" style="grid-template-columns:1fr;">
+      <div>
+        <span class="eyebrow">Kundenlogin</span>
+        <h1>Ihr <span class="accent">Kundenbereich</span></h1>
+        <p class="lead">Registrieren Sie sich oder melden Sie sich an, um auf Ihren persönlichen Kundenbereich zuzugreifen.</p>
+      </div>
+    </div>
+  </section>
+
+  <div id="form-status" class="wrap" style="display:none; margin-bottom:-40px;">
+    <div id="form-status-banner" style="padding:16px 20px; border-radius:10px; font-weight:600;"></div>
+  </div>
+
+  <section style="padding-top:0;">
+    <div class="wrap auth-card">
+
+      <div class="auth-switch">
+        <button type="button" id="tab-login" class="active">Anmelden</button>
+        <button type="button" id="tab-register">Registrieren</button>
+      </div>
+
+      <!-- Anmelden -->
+      <div id="panel-login" class="auth-panel active">
+        <form class="contact-form" id="login-form">
+          <div style="position:absolute; left:-9999px;" aria-hidden="true">
+            <label for="login-website">Bitte freilassen</label>
+            <input id="login-website" type="text" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div>
+            <label for="login-identifier">Name oder E-Mail-Adresse *</label>
+            <input id="login-identifier" type="text" name="identifier" required autocomplete="username">
+          </div>
+          <div>
+            <label for="login-password">Passwort *</label>
+            <input id="login-password" type="password" name="password" required autocomplete="current-password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="justify-self:start;">Anmelden</button>
+        </form>
+      </div>
+
+      <!-- Registrieren -->
+      <div id="panel-register" class="auth-panel">
+        <form class="contact-form" id="register-form">
+          <div style="position:absolute; left:-9999px;" aria-hidden="true">
+            <label for="register-website">Bitte freilassen</label>
+            <input id="register-website" type="text" name="website" tabindex="-1" autocomplete="off">
+          </div>
+          <div>
+            <label for="register-name">Ihr Name *</label>
+            <input id="register-name" type="text" name="name" required autocomplete="name">
+          </div>
+          <div>
+            <label for="register-email">Ihre E-Mail-Adresse *</label>
+            <input id="register-email" type="email" name="email" required autocomplete="email">
+          </div>
+          <p class="form-note">Nach dem Absenden erhalten Sie eine E-Mail mit einem Bestätigungslink. Erst nach der Bestätigung vergeben Sie Ihr Passwort.</p>
+          <button type="submit" class="btn btn-primary" style="justify-self:start;">Registrieren</button>
+        </form>
+      </div>
+
+      <!-- Passwort festlegen (nach Klick auf den Bestätigungslink) -->
+      <div id="panel-setpassword" class="auth-panel">
+        <p id="setpassword-intro" style="color:var(--ink-soft);"></p>
+        <form class="contact-form" id="setpassword-form">
+          <input type="hidden" id="setpassword-token" name="token" value="">
+          <div>
+            <label for="setpassword-password">Neues Passwort (mind. 8 Zeichen) *</label>
+            <input id="setpassword-password" type="password" name="password" required minlength="8" autocomplete="new-password">
+          </div>
+          <div>
+            <label for="setpassword-password2">Passwort wiederholen *</label>
+            <input id="setpassword-password2" type="password" name="password2" required minlength="8" autocomplete="new-password">
+          </div>
+          <button type="submit" class="btn btn-primary" style="justify-self:start;">Passwort speichern &amp; anmelden</button>
+        </form>
+      </div>
+
+    </div>
+  </section>
+</main>
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div>
+      <h4>Ingenieurbüro Bräu</h4>
+      <p style="color:#8b968f; font-size:0.88rem; max-width:32ch;">Energieberatung und Energieaudit für Unternehmen in München und Bayern. Seit 1999.</p>
+    </div>
+    <div>
+      <h4>Navigation</h4>
+      <ul>
+        <li><a href="index.html">Leistungen</a></li>
+        <li><a href="din-en-16247-1.html">DIN EN 16247-1</a></li>
+        <li><a href="ueber-uns.html">Über uns</a></li>
+        <li><a href="vorgehensweise.html">Vorgehensweise</a></li>
+        <li><a href="kontakt.html">Kontakt/Anfrage</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4>Kontakt</h4>
+      <ul>
+        <li>Leostrasse 7, 81375 München</li>
+        <li>+49 160 930 974 81</li>
+        <li>info@braeu-ing.de</li>
+      </ul>
+    </div>
+  </div>
+  <div class="wrap bottom">
+    <span>© Ingenieurbüro Bräu · Dirk Bräu</span>
+    <span><a href="impressum.html">Impressum / Datenschutz</a></span>
+  </div>
+</footer>
+<script src="assets/js/main.js"></script>
+<script>
+(function () {
+  var tabs = { login: document.getElementById('tab-login'), register: document.getElementById('tab-register') };
+  var panels = { login: document.getElementById('panel-login'), register: document.getElementById('panel-register') };
+
+  function showTab(name) {
+    Object.keys(tabs).forEach(function (k) {
+      tabs[k].classList.toggle('active', k === name);
+      panels[k].classList.toggle('active', k === name);
+    });
+    document.getElementById('panel-setpassword').classList.remove('active');
+  }
+  tabs.login.addEventListener('click', function () { showTab('login'); });
+  tabs.register.addEventListener('click', function () { showTab('register'); });
+
+  function banner(text, type) {
+    var wrap = document.getElementById('form-status');
+    var el = document.getElementById('form-status-banner');
+    el.textContent = text;
+    if (type === 'success') {
+      el.style.background = 'rgba(106,164,33,0.12)';
+      el.style.color = '#4d7a17';
+    } else {
+      el.style.background = 'rgba(212,80,80,0.12)';
+      el.style.color = '#a33';
+    }
+    wrap.style.display = 'block';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  async function postJSON(url, data) {
+    var res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+      credentials: 'same-origin'
+    });
+    return res.json();
+  }
+
+  document.getElementById('register-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var f = e.target;
+    var payload = {
+      name: f.name.value,
+      email: f.email.value,
+      website: f.website.value
+    };
+    var btn = f.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await postJSON('kunden/register.php', payload);
+      if (r.ok) {
+        banner(r.message || 'Bitte prüfen Sie Ihr E-Mail-Postfach.', 'success');
+        f.reset();
+      } else {
+        banner(r.error || 'Es ist ein Fehler aufgetreten.', 'error');
+      }
+    } catch (err) {
+      banner('Beim Senden ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.', 'error');
+    } finally {
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('login-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var f = e.target;
+    var payload = {
+      identifier: f.identifier.value,
+      password: f.password.value,
+      website: f.website.value
+    };
+    var btn = f.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await postJSON('kunden/login.php', payload);
+      if (r.ok) {
+        window.location.href = 'kundenbereich.php';
+      } else {
+        banner(r.error || 'Anmeldung fehlgeschlagen.', 'error');
+        btn.disabled = false;
+      }
+    } catch (err) {
+      banner('Beim Anmelden ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.', 'error');
+      btn.disabled = false;
+    }
+  });
+
+  document.getElementById('setpassword-form').addEventListener('submit', async function (e) {
+    e.preventDefault();
+    var f = e.target;
+    var payload = {
+      token: f.token.value,
+      password: f.password.value,
+      password2: f.password2.value
+    };
+    var btn = f.querySelector('button[type="submit"]');
+    btn.disabled = true;
+    try {
+      var r = await postJSON('kunden/set-password.php', payload);
+      if (r.ok) {
+        banner('Passwort gespeichert. Sie werden weitergeleitet …', 'success');
+        setTimeout(function () { window.location.href = 'kundenbereich.php'; }, 1200);
+      } else {
+        banner(r.error || 'Es ist ein Fehler aufgetreten.', 'error');
+        btn.disabled = false;
+      }
+    } catch (err) {
+      banner('Es ist ein Fehler aufgetreten. Bitte versuchen Sie es erneut.', 'error');
+      btn.disabled = false;
+    }
+  });
+
+  // Kommt der Besucher über einen Bestätigungslink (?verify=TOKEN)?
+  (async function () {
+    var params = new URLSearchParams(location.search);
+    var token = params.get('verify');
+    if (!token) { return; }
+    try {
+      var res = await fetch('kunden/verify.php?token=' + encodeURIComponent(token), { credentials: 'same-origin' });
+      var r = await res.json();
+      if (r.ok) {
+        Object.keys(tabs).forEach(function (k) {
+          tabs[k].classList.remove('active');
+          panels[k].classList.remove('active');
+        });
+        document.getElementById('setpassword-token').value = r.token;
+        document.getElementById('setpassword-intro').textContent = 'Hallo ' + r.name + ', Ihre E-Mail-Adresse wurde bestätigt. Bitte vergeben Sie jetzt ein Passwort.';
+        document.getElementById('panel-setpassword').classList.add('active');
+      } else {
+        banner(r.error || 'Der Bestätigungslink ist ungültig oder abgelaufen.', 'error');
+      }
+    } catch (err) {
+      banner('Der Bestätigungslink konnte nicht geprüft werden.', 'error');
+    }
+  })();
+})();
+</script>
