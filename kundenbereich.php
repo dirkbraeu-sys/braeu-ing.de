@@ -24,7 +24,7 @@ $name = htmlspecialchars((string) ($_SESSION['customer_name'] ?? 'Kunde/Kundin')
 <header class="site-header">
   <div class="wrap">
     <a href="index.html" class="brand">
-      <span class="mark">iB</span>
+      <img class="mark" src="assets/img/favicon-50x50.jpg" alt="Ingenieurbüro Bräu Logo">
       <span>Ingenieurbüro Bräu<small>Energieberatung &amp; Energieaudit</small></span>
     </a>
     <nav class="main-nav">
