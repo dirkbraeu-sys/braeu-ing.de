@@ -17,6 +17,18 @@
 .auth-panel { display:none; }
 .auth-panel.active { display:block; }
 .auth-card { max-width:460px; margin:0 auto; }
+.pw-field { position:relative; }
+.pw-field input { padding-right:44px !important; }
+.pw-toggle {
+  position:absolute; right:6px; top:50%; transform:translateY(-50%);
+  width:32px; height:32px; display:flex; align-items:center; justify-content:center;
+  background:none; border:none; cursor:pointer; color:var(--ink-soft); border-radius:8px;
+}
+.pw-toggle:hover { color:var(--green-dark); background:var(--paper-tint); }
+.pw-toggle svg { width:20px; height:20px; }
+.pw-toggle .icon-hide { display:none; }
+.pw-toggle.is-visible .icon-show { display:none; }
+.pw-toggle.is-visible .icon-hide { display:block; }
 </style>
 
 <header class="site-header">
@@ -73,7 +85,13 @@
           </div>
           <div>
             <label for="login-password">Passwort *</label>
-            <input id="login-password" type="password" name="password" required autocomplete="current-password">
+            <div class="pw-field">
+              <input id="login-password" type="password" name="password" required autocomplete="current-password">
+              <button type="button" class="pw-toggle" data-target="login-password" aria-label="Passwort anzeigen">
+                <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn btn-primary" style="justify-self:start;">Anmelden</button>
           <p class="form-note"><a href="#" id="link-forgot">Passwort vergessen?</a></p>
@@ -124,11 +142,23 @@
           <input type="hidden" id="setpassword-token" name="token" value="">
           <div>
             <label for="setpassword-password">Neues Passwort (mind. 8 Zeichen) *</label>
-            <input id="setpassword-password" type="password" name="password" required minlength="8" autocomplete="new-password">
+            <div class="pw-field">
+              <input id="setpassword-password" type="password" name="password" required minlength="8" autocomplete="new-password">
+              <button type="button" class="pw-toggle" data-target="setpassword-password" aria-label="Passwort anzeigen">
+                <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
+              </button>
+            </div>
           </div>
           <div>
             <label for="setpassword-password2">Passwort wiederholen *</label>
-            <input id="setpassword-password2" type="password" name="password2" required minlength="8" autocomplete="new-password">
+            <div class="pw-field">
+              <input id="setpassword-password2" type="password" name="password2" required minlength="8" autocomplete="new-password">
+              <button type="button" class="pw-toggle" data-target="setpassword-password2" aria-label="Passwort anzeigen">
+                <svg class="icon-show" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"/><circle cx="12" cy="12" r="3"/></svg>
+                <svg class="icon-hide" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.3 20.3 0 0 1 5.06-5.94M9.9 4.24A10.4 10.4 0 0 1 12 4c7 0 11 8 11 8a20.3 20.3 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/><path d="M1 1l22 22"/></svg>
+              </button>
+            </div>
           </div>
           <button type="submit" class="btn btn-primary" style="justify-self:start;">Passwort speichern &amp; anmelden</button>
         </form>
@@ -200,6 +230,16 @@
   document.getElementById('link-back-to-login').addEventListener('click', function (e) {
     e.preventDefault();
     showTab('login');
+  });
+
+  document.querySelectorAll('.pw-toggle').forEach(function (btn) {
+    btn.addEventListener('click', function () {
+      var input = document.getElementById(btn.getAttribute('data-target'));
+      var showing = input.type === 'text';
+      input.type = showing ? 'password' : 'text';
+      btn.classList.toggle('is-visible', !showing);
+      btn.setAttribute('aria-label', showing ? 'Passwort anzeigen' : 'Passwort verbergen');
+    });
   });
 
   function banner(text, type) {
