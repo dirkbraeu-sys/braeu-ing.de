@@ -90,5 +90,6 @@ $name = htmlspecialchars((string) ($_SESSION['customer_name'] ?? 'Kunde/Kundin')
   </div>
 </footer>
 <script src="assets/js/main.js"></script>
+<script src="assets/js/track.js" defer></script>
 </body>
 </html>
