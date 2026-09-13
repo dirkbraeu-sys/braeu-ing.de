@@ -34,7 +34,9 @@ $name = htmlspecialchars((string) ($_SESSION['customer_name'] ?? 'Kunde/Kundin')
       <a href="vorgehensweise.html">Vorgehensweise</a>
       <a href="kontakt.html">Kontakt</a>
       <a href="index.html#faq">FAQ</a>
-      <a href="kunden/logout.php" class="nav-cta">Abmelden</a>
+      <a href="kundenlogin.html" class="active">Kundenlogin</a>
+      <a href="kunden/logout.php">Abmelden</a>
+      <a href="kontakt.html" class="nav-cta">Beratung anfragen</a>
     </nav>
     <button class="nav-toggle" aria-label="Menü öffnen" aria-expanded="false">☰</button>
   </div>
