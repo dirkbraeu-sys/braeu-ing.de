@@ -48,15 +48,21 @@ function kunden_ensure_schema(PDO $pdo): void
             KEY idx_token (verification_token)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
+    // Jede Änderung einzeln und einzeln abgesichert: eine ungültige/bereits
+    // vorhandene Klausel darf die anderen nicht verhindern (bei MySQL ist
+    // ALTER TABLE mit mehreren Klauseln sonst alles-oder-nichts).
     try {
-        $pdo->exec("
-            ALTER TABLE customers
-                ADD COLUMN IF NOT EXISTS reset_token CHAR(64) NULL,
-                ADD COLUMN IF NOT EXISTS reset_expires DATETIME NULL,
-                ADD KEY IF NOT EXISTS idx_reset_token (reset_token)
-        ");
+        $pdo->exec("ALTER TABLE customers ADD COLUMN IF NOT EXISTS reset_token CHAR(64) NULL");
     } catch (Throwable $e) {
-        // Ältere MySQL-Versionen ohne "IF NOT EXISTS" bei ALTER: einfach ignorieren,
+    }
+    try {
+        $pdo->exec("ALTER TABLE customers ADD COLUMN IF NOT EXISTS reset_expires DATETIME NULL");
+    } catch (Throwable $e) {
+    }
+    try {
+        $pdo->exec("ALTER TABLE customers ADD INDEX idx_reset_token (reset_token)");
+    } catch (Throwable $e) {
+        // Ältere MySQL-Versionen ohne "IF NOT EXISTS" bei ALTER, oder Index existiert bereits: ignorieren,
         // falls die Spalten schon existieren, schlägt es sonst hier fehl.
     }
     $done = true;
