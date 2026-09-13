@@ -48,22 +48,22 @@ function kunden_ensure_schema(PDO $pdo): void
             KEY idx_token (verification_token)
         ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
     ");
-    // Jede Änderung einzeln und einzeln abgesichert: eine ungültige/bereits
-    // vorhandene Klausel darf die anderen nicht verhindern (bei MySQL ist
-    // ALTER TABLE mit mehreren Klauseln sonst alles-oder-nichts).
-    try {
-        $pdo->exec("ALTER TABLE customers ADD COLUMN IF NOT EXISTS reset_token CHAR(64) NULL");
-    } catch (Throwable $e) {
+    // "ADD COLUMN IF NOT EXISTS" wird von diesem Server nicht unterstützt –
+    // deshalb erst per SHOW COLUMNS prüfen, dann ggf. ganz normal hinzufügen.
+    // Das funktioniert unabhängig von MySQL-/MariaDB-Version.
+    $existingCols = $pdo->query('SHOW COLUMNS FROM customers')->fetchAll(PDO::FETCH_COLUMN);
+
+    if (!in_array('reset_token', $existingCols, true)) {
+        try {
+            $pdo->exec("ALTER TABLE customers ADD COLUMN reset_token CHAR(64) NULL, ADD INDEX idx_reset_token (reset_token)");
+        } catch (Throwable $e) {
+        }
     }
-    try {
-        $pdo->exec("ALTER TABLE customers ADD COLUMN IF NOT EXISTS reset_expires DATETIME NULL");
-    } catch (Throwable $e) {
-    }
-    try {
-        $pdo->exec("ALTER TABLE customers ADD INDEX idx_reset_token (reset_token)");
-    } catch (Throwable $e) {
-        // Ältere MySQL-Versionen ohne "IF NOT EXISTS" bei ALTER, oder Index existiert bereits: ignorieren,
-        // falls die Spalten schon existieren, schlägt es sonst hier fehl.
+    if (!in_array('reset_expires', $existingCols, true)) {
+        try {
+            $pdo->exec("ALTER TABLE customers ADD COLUMN reset_expires DATETIME NULL");
+        } catch (Throwable $e) {
+        }
     }
     $done = true;
 }
